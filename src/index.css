@@ -9,6 +9,37 @@
   --color-red: #fa5252;
   --color-red-dark: #e03131;
 }
+/* Target the entire scrollbar */
+::-webkit-scrollbar {
+  width: 2px; /* vertical scrollbar width */
+  height: 2px; /* horizontal scrollbar height */
+}
+
+/* Track (background of the scrollbar) */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 1px;
+}
+
+/* Thumb (the draggable handle) */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.scrollable-element {
+  overflow-y: scroll;
+  behavior: smooth;
+}
+
+.scrollable-element::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 8px;
+}
+
+.scrollable-element::-webkit-scrollbar-track {
+  background-color: #e0f2f1;
+}
 
 * {
   margin: 0;

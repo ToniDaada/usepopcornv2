@@ -55,36 +55,63 @@ const API_KEY = "c5cc8876";
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
+  const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const query = "inception";
+  const [error, setError] = useState("");
+
+  const tempQuery = "interstellar";
 
   useEffect(() => {
     const fetchMovies = async function () {
       try {
         setIsLoading(true);
+        setError("");
         const res = await fetch(
           `http://www.omdbapi.com/?apikey=${API_KEY}&s=${query}`
         );
+
+        if (!res.ok) {
+          throw new Error("Something went wrong with fetching movies");
+        }
         const data = await res.json();
+        if (data.Response === "False") {
+          throw new Error("Movie not found");
+        }
         setMovies(data.Search);
+      } catch (err) {
+        setError(err.message);
+      } finally {
         setIsLoading(false);
-      } catch (err) {}
+      }
     };
+    if (query.length < 3) {
+      setMovies([]);
+      setError("");
+      return;
+    }
     fetchMovies();
-  }, []);
+  }, [query]);
 
   return (
     <>
       {/* Compostion: fixing PROP drilling */}
       <NavBar>
         <Logo />
-        <SearchBar />
-        <SearchResults movies={movies} isLoading={isLoading} />
+        <SearchBar query={query} setQuery={setQuery} />
+        <SearchResults movies={movies} />
       </NavBar>
       <Main>
         <Box>
-          <MovieList movies={movies} />
+          {/* {isLoading ? (
+            <Loader children={Loader} />
+          ) : (
+            <MovieList movies={movies} />
+          )} */}
+          {isLoading && <Loader children="Loading..." />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
         </Box>
+
         <Box>
           <WatchedSummary watched={watched} />
           <WathchedMoviesList watched={watched} />
@@ -106,8 +133,7 @@ function Logo() {
     </div>
   );
 }
-function SearchBar() {
-  const [query, setQuery] = useState("");
+function SearchBar({ query, setQuery }) {
   return (
     <input
       className="search"
@@ -118,13 +144,11 @@ function SearchBar() {
     />
   );
 }
-function SearchResults({ movies, isLoading }) {
+function SearchResults({ movies }) {
   return (
-    isLoading && (
-      <p className={`num-results`}>
-        Found <strong>{movies.length}</strong> results
-      </p>
-    )
+    <p className={`num-results`}>
+      Found <strong>{movies.length}</strong> results
+    </p>
   );
 }
 
@@ -135,7 +159,7 @@ function Main({ children }) {
 function Box({ children }) {
   const [isOpen, setIsOpen] = useState(true);
   return (
-    <div className="box">
+    <div className="box scrollable-element">
       <button className="btn-toggle" onClick={() => setIsOpen((open) => !open)}>
         {isOpen ? "–" : "+"}
       </button>
@@ -249,5 +273,18 @@ function WatchedMovie({ movie }) {
         </p>
       </div>
     </li>
+  );
+}
+
+function Loader({ children }) {
+  return <p className="loader">{children}</p>;
+}
+
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>⛔</span>
+      {message}
+    </p>
   );
 }
