@@ -55,11 +55,22 @@ const API_KEY = "c5cc8876";
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const query = "inception";
 
-  useEffect(function () {
-    fetch(`http://www.omdbapi.com/?apikey=${API_KEY}&s=interstellar`)
-      .then((res) => res.json())
-      .then((data) => setMovies(data.Search));
+  useEffect(() => {
+    const fetchMovies = async function () {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${API_KEY}&s=${query}`
+        );
+        const data = await res.json();
+        setMovies(data.Search);
+        setIsLoading(false);
+      } catch (err) {}
+    };
+    fetchMovies();
   }, []);
 
   return (
@@ -68,7 +79,7 @@ export default function App() {
       <NavBar>
         <Logo />
         <SearchBar />
-        <SearchResults movies={movies} />
+        <SearchResults movies={movies} isLoading={isLoading} />
       </NavBar>
       <Main>
         <Box>
@@ -107,11 +118,13 @@ function SearchBar() {
     />
   );
 }
-function SearchResults({ movies }) {
+function SearchResults({ movies, isLoading }) {
   return (
-    <p className="num-results">
-      Found <strong>{movies.length}</strong> results
-    </p>
+    isLoading && (
+      <p className={`num-results`}>
+        Found <strong>{movies.length}</strong> results
+      </p>
+    )
   );
 }
 
