@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StarRating from "./StarRating";
 
 const tempMovieData = [
   {
@@ -58,8 +59,15 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
 
-  const tempQuery = "interstellar";
+  function handleSelectMovie(id) {
+    selectedId === id ? setSelectedId(null) : setSelectedId(id);
+  }
+
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
 
   useEffect(() => {
     const fetchMovies = async function () {
@@ -78,6 +86,7 @@ export default function App() {
           throw new Error("Movie not found");
         }
         setMovies(data.Search);
+        console.log(data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -108,13 +117,24 @@ export default function App() {
             <MovieList movies={movies} />
           )} */}
           {isLoading && <Loader children="Loading..." />}
-          {!isLoading && !error && <MovieList movies={movies} />}
+          {!isLoading && !error && (
+            <MovieList movies={movies} onSelectMovie={handleSelectMovie} />
+          )}
           {error && <ErrorMessage message={error} />}
         </Box>
 
         <Box>
-          <WatchedSummary watched={watched} />
-          <WathchedMoviesList watched={watched} />
+          {selectedId ? (
+            <MovieDetails
+              selectedId={selectedId}
+              onCloseMovie={handleCloseMovie}
+            />
+          ) : (
+            <>
+              <WatchedSummary watched={watched} />
+              <WathchedMoviesList watched={watched} />
+            </>
+          )}
         </Box>
       </Main>
     </>
@@ -189,19 +209,23 @@ function WatchedBox() {
   );
 }
 */
-function MovieList({ movies }) {
+function MovieList({ movies, onSelectMovie }) {
   return (
-    <ul className="list">
+    <ul className="list list-movies">
       {movies?.map((movie) => (
-        <Movies movie={movie} key={movie.imdbID} />
+        <Movies
+          movie={movie}
+          key={movie.imdbID}
+          onSelectMovie={onSelectMovie}
+        />
       ))}
     </ul>
   );
 }
 
-function Movies({ movie }) {
+function Movies({ movie, onSelectMovie }) {
   return (
-    <li>
+    <li onClick={() => onSelectMovie(movie.imdbID)}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -211,6 +235,81 @@ function Movies({ movie }) {
         </p>
       </div>
     </li>
+  );
+}
+
+function MovieDetails({ selectedId, onCloseMovie }) {
+  const [movieDetails, setMovieDetails] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    Title: title,
+    Year: year,
+    Runtime: runtime,
+    imdbRating,
+    Plot: plot,
+    Released: released,
+    Actors: actors,
+    Poster: poster,
+    Genre: genre,
+    Director: director,
+  } = movieDetails;
+
+  // console.log(actors, poster, genre, director);
+
+  useEffect(() => {
+    const getMovieDetails = async function () {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${API_KEY}&i=${selectedId}`
+        );
+        if (!res.ok) {
+          throw new Error("Something went wrong with fetching movie details");
+        }
+        const data = await res.json();
+        setMovieDetails(data);
+        setIsLoading(false);
+      } catch (err) {
+        console.error(err.message);
+      }
+    };
+    getMovieDetails();
+  }, [selectedId]);
+  return (
+    <div className="details">
+      {isLoading ? (
+        <Loader children="Loading..." />
+      ) : (
+        <>
+          <header>
+            <button className="btn-back" onClick={onCloseMovie}>
+              &larr;
+            </button>
+            <img src={poster} alt={`${title} poster`} />
+
+            <div className="details-overview">
+              <h2>{title}</h2>
+              <p>{released}</p>
+              <p>{genre}</p>
+              <p>
+                <span>⭐️</span> {imdbRating} IMDB rating
+              </p>
+            </div>
+          </header>
+          <section>
+            <div className="rating">
+              <StarRating starNumber={10} size={24} />
+            </div>
+            <p>
+              <em>{plot}</em>
+            </p>
+            <p>Starring {actors}</p>
+            <p>Directed by {director}</p>
+          </section>
+        </>
+      )}
+    </div>
   );
 }
 

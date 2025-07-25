@@ -16,7 +16,7 @@ StarRating.protoTypes = {
   color: PropTypes.string,
 };
 
-export default function StarRating({
+function StarRating({
   // Default values are being set
   starNumber = 5,
   color = "#fcc419",
@@ -127,3 +127,5 @@ function Star({ onRate, full, onHover, onLeave, color, size }) {
     </span>
   );
 }
+
+export default StarRating;
