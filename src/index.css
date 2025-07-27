@@ -331,11 +331,19 @@ body {
   padding: 1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.4s;
 }
 
 .btn-add:hover {
   background-color: var(--color-primary-light);
+}
+
+.btn-add.gray {
+  background-color: gray;
+  cursor: no-drop;
+}
+.btn-add.gray:hover {
+  background-color: lightgray;
 }
 
 .seconds {
