@@ -56,7 +56,7 @@ function StarRating({
 
       <div style={starConainerStyle}>
         {Array.from({ length: +starNumber }, (_, i) => (
-          <span>
+          <span key={i}>
             {/* Star Component */}
             <Star
               key={i}
